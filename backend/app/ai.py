@@ -4,8 +4,7 @@ import re
 from collections import Counter
 from typing import Any
 
-from openai import OpenAI
-
+from .config import OPENAI_API_KEY, GEMINI_API_KEY
 
 def _extract_json(text: str) -> dict[str, Any]:
     cleaned = text.strip()

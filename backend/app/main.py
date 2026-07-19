@@ -234,7 +234,9 @@ def health(db: Session = Depends(get_db)):
             content={
                 "status": "error",
                 "database": "disconnected",
-                "ai_configured": bool(os.getenv("OPENAI_API_KEY")),
+                "ai_configured": bool(
+                    OPENAI_API_KEY or GEMINI_API_KEY
+                ),
             },
         )
     return {
