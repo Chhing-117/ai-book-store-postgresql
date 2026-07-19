@@ -325,9 +325,11 @@ def _run_gemini(
 
     except Exception as error:
 
-        print("Gemini error:", error)
+    print("===== GEMINI ERROR =====")
+    print(error)
+    print("========================")
 
-        return fallback
+    return fallback
 
 
 def get_ai_book_recommendations(
