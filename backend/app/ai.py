@@ -1,6 +1,15 @@
 import json
 import os
 import re
+import google.generativeai as genai
+
+from .config import GEMINI_API_KEY
+
+genai.configure(api_key=GEMINI_API_KEY)
+
+model = genai.GenerativeModel(
+    "gemini-1.5-flash"
+)
 from collections import Counter
 from typing import Any
 
