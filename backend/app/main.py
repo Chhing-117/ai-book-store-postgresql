@@ -13,6 +13,7 @@ from sqlalchemy import delete, desc, distinct, func, or_, select, text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from .config import OPENAI_API_KEY, GEMINI_API_KEY
 from .ai import get_ai_book_recommendations
 from .auth import (
     create_session,
