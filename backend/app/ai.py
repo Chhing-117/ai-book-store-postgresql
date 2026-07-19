@@ -325,11 +325,11 @@ def _run_gemini(
 
     except Exception as error:
 
-    print("===== GEMINI ERROR =====")
-    print(error)
-    print("========================")
+        print("===== GEMINI ERROR =====")
+        print(error)
+        print("========================")
 
-    return fallback
+        return fallback
 
 
 def get_ai_book_recommendations(
@@ -450,9 +450,9 @@ Explain why these books are closest matches.
 
 
     return _run_gemini(
-    prompt=prompt,
-    books=filtered_books,
-    limit=limit,
-    fallback=fallback,
-    signals=fallback["signals_used"],
-)
+        prompt=prompt,
+        books=filtered_books,
+        limit=limit,
+        fallback=fallback,
+        signals=fallback["signals_used"],
+    )
