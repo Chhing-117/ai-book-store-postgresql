@@ -13,8 +13,6 @@ model = genai.GenerativeModel(
 from collections import Counter
 from typing import Any
 
-from .config import OPENAI_API_KEY, GEMINI_API_KEY
-
 def _extract_json(text: str) -> dict[str, Any]:
     cleaned = text.strip()
     fenced = re.search(r"```(?:json)?\s*(\{.*\})\s*```", cleaned, flags=re.DOTALL)
@@ -261,7 +259,7 @@ def _local_personalized_recommendations(
     }
 
 
-def _run_openai(
+def _run_gemini(
     *,
     prompt: str,
     books: list[dict[str, Any]],
@@ -269,45 +267,66 @@ def _run_openai(
     fallback: dict[str, Any],
     signals: list[str],
 ) -> dict[str, Any]:
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
+
+    if not GEMINI_API_KEY:
         return fallback
 
     try:
-        client = OpenAI(api_key=api_key)
-        response = client.responses.create(
-            model=os.getenv("OPENAI_MODEL", "gpt-5-mini"),
-            instructions=(
-                "You are a careful bookstore recommendation assistant. "
-                "Return valid JSON only and reference only IDs from the supplied catalog."
-            ),
-            input=prompt,
-        )
-        parsed = _extract_json(response.output_text)
+        response = model.generate_content(prompt)
+
+        text = response.text
+
+        parsed = _extract_json(text)
+
         valid_ids = {int(book["id"]) for book in books}
-        seen: set[int] = set()
+
+        seen = set()
         recommendations = []
+
         for item in parsed.get("recommendations", []):
+
             book_id = int(item.get("book_id"))
+
             if book_id in valid_ids and book_id not in seen:
                 seen.add(book_id)
-                recommendations.append(
-                    {
-                        "book_id": book_id,
-                        "reason": str(item.get("reason", "Recommended for your reading preferences."))[:300],
-                    }
-                )
+
+                recommendations.append({
+                    "book_id": book_id,
+                    "reason": str(
+                        item.get(
+                            "reason",
+                            "Recommended for your preferences."
+                        )
+                    )[:300]
+                })
+
             if len(recommendations) >= limit:
                 break
+
+
         if not recommendations:
-            raise ValueError("The model returned no valid catalog IDs.")
+            raise ValueError(
+                "Gemini returned no valid books"
+            )
+
+
         return {
-            "source": "openai",
-            "summary": str(parsed.get("summary", "Here are your personalized recommendations."))[:350],
+            "source": "gemini",
+            "summary": str(
+                parsed.get(
+                    "summary",
+                    "Here are your recommendations."
+                )
+            )[:350],
             "recommendations": recommendations,
             "signals_used": signals,
         }
-    except Exception:
+
+
+    except Exception as error:
+
+        print("Gemini error:", error)
+
         return fallback
 
 
@@ -428,10 +447,10 @@ Explain why these books are closest matches.
 """
 
 
-    return _run_openai(
-        prompt=prompt,
-        books=filtered_books,
-        limit=limit,
-        fallback=fallback,
-        signals=fallback["signals_used"],
-    )
+    return _run_gemini(
+    prompt=prompt,
+    books=filtered_books,
+    limit=limit,
+    fallback=fallback,
+    signals=fallback["signals_used"],
+)
